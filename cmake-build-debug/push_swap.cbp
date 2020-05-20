@@ -272,6 +272,9 @@
 		<Unit filename="/Users/whool199/push_swap/libft/libft.h">
 			<Option target="push_swap"/>
 		</Unit>
+		<Unit filename="/Users/whool199/push_swap/libft/push_swap.h">
+			<Option target="push_swap"/>
+		</Unit>
 		<Unit filename="/Users/whool199/push_swap/push_swap.c">
 			<Option target="push_swap"/>
 		</Unit>

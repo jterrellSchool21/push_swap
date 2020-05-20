@@ -173,4 +173,5 @@ CMakeFiles/push_swap.dir/libft/ft_toupper.c.o: ../libft/ft_toupper.c
 
 CMakeFiles/push_swap.dir/push_swap.c.o: ../libft/libft.h
 CMakeFiles/push_swap.dir/push_swap.c.o: ../push_swap.c
+CMakeFiles/push_swap.dir/push_swap.c.o: ../push_swap.h
 

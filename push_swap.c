@@ -1,15 +1,22 @@
 #include <stdio.h>
 #include "libft.h"
 #include <stdlib.h>
+#include "push_swap.h"
 
-//sa sb ss						- done!
-//pa pb							- done!
-//ra rb rr						- done!
-//rra rrb rrr					- done!
-//algorithm :
-//	1. Median value sort		- done!
-//	2. Median value find in
-//		my list					- in action
+void	free_list(t_swap **tmp)
+{
+	if (!((*tmp)->next))
+	{
+		*tmp = NULL;
+		free(*tmp);
+	}
+}
+
+void	refresh()
+{
+	BACK = 0;
+	HEAD = 0;
+}
 
 void	RaiseError(int err)
 {
@@ -23,13 +30,6 @@ void	RaiseError(int err)
 		ft_putstr(">> Not valid format of array or array is empty\n");
 	exit(1);
 }
-
-typedef	struct	s_swap
-{
-	int				elem;
-	int 			sort;
-	struct s_swap	*next;
-}				t_swap;
 
 int		size_of_list(t_swap *tmp)
 {
@@ -66,14 +66,14 @@ void	print_list(t_swap *tmp)
 		printf("list[0] = %d\n", head->elem);
 }
 
-void	add_new_elem(t_swap *tmp, int new_elem)
+void	add_new_elem(t_swap *tmp, int new_elem, char l)
 {
 	tmp->elem = new_elem;
-	tmp->sort = 0;
+	tmp->k = l;
 	tmp->next = (t_swap*)malloc(sizeof(t_swap));
 }
 
-t_swap	*new_list(char **array)
+t_swap	*new_list(char **array, char k)
 {
 	t_swap	*t;
 	t_swap	*head;
@@ -81,18 +81,18 @@ t_swap	*new_list(char **array)
 
 	i = 1;
 	if (!(t = (t_swap*)malloc(sizeof(t_swap))))
-		return (NULL);
+		RaiseError(2);
 	head = t;
 	t->next = NULL;
 	if (array != NULL)
 		while (array[i])
 		{
-			add_new_elem(t, ft_atoi(array[i]));
+			add_new_elem(t, ft_atoi(array[i]), k);
 			t = t->next;
 			i++;
 		}
 	else
-		add_new_elem(t, 0);
+		add_new_elem(t, 0, k);
 	t->next = NULL;
 	return (head);
 }
@@ -106,12 +106,18 @@ void	s(t_swap *tmp)
 	{
 		head->elem ^= head->next->elem ^= head->elem ^= head->next->elem;
 	}
+	COUNT++;
+//	if ((*head).k == 'a')
+//		printf("sa\n");
+//	else
+//		printf("sb\n");
 }
 
 void	ss(t_swap *tmp1, t_swap *tmp2)
 {
 	s(tmp1);
 	s(tmp2);
+	COUNT++;
 }
 
 int		stack_del_top(t_swap **frame)
@@ -142,9 +148,15 @@ void	stack_add_top(t_swap **frame, int element)
 	}
 }
 
-void	p(t_swap **tmp1, t_swap **tmp2)	// from tmp2 to tmp1
+void	p(t_swap **tmp1, t_swap **tmp2)
 {
-	stack_add_top(tmp1, stack_del_top(tmp2));
+	if (*tmp2)
+		stack_add_top(tmp1, stack_del_top(tmp2));
+	COUNT++;
+//	if ((*tmp2)->k == 'a')
+//		printf("pa\n");
+//	else
+//		printf("pb\n");
 }
 
 void	stack_add_end(t_swap **frame, int element)
@@ -176,7 +188,6 @@ int		stack_del_end(t_swap **frame)
 	{
 		*frame = (*frame)->next;
 	}
-	//print_list(*frame);
 	x = (*frame)->next->elem;
 	*head = (*frame)->next;
 	(*frame)->next = NULL;
@@ -193,23 +204,35 @@ void	r(t_swap **tmp)
 	x = (*tmp)->elem;
 	stack_del_top(tmp);
 	stack_add_end(tmp, x);
+	COUNT++;
+//	if ((*tmp)->k == 'a')
+//		printf("ra\n");
+//	else
+//		printf("rb\n");
 }
 
 void	rr(t_swap **tmp1, t_swap **tmp2)
 {
 	r(tmp1);
 	r(tmp2);
+	COUNT++;
 }
 
 void	rr_a_b(t_swap **tmp)
 {
 	stack_add_top(tmp, stack_del_end(tmp));
+	COUNT++;
+//	if ((*tmp)->k == 'a')
+//		printf("rra\n");
+//	else
+//		printf("rrb\n");
 }
 
 void	rrr(t_swap **tmp1, t_swap **tmp2)
 {
 	stack_add_top(tmp1, stack_del_end(tmp1));
 	stack_add_top(tmp2, stack_del_end(tmp2));
+	COUNT++;
 }
 
 int 	check(char *str)
@@ -296,156 +319,222 @@ int 	*new_sort(char **argv)
 	return (quick_sort(result, len));
 }
 
-int 	find_central(t_swap *tmp, int *list)
+int 	find_central(int *list, int size)
 {
-	int 	i;
-	int 	size;
+	int 	result;
 
-	size = size_of_list(tmp);
-	i = 0;
-	while (tmp->elem != list[size / 2])
-	{
-		tmp = tmp->next;
-		i++;
-	}
-	printf("central %d = %d\n", i, tmp->elem);
-	return (tmp->elem);
+	result = list[size / 2];
+	return (result);
 }
 
-int		under_median(t_swap **a, t_swap **b, int median)
+void	find_min(t_swap *a)
+{
+	int		i;
+	int 	minimum;
+	int 	size;
+
+	minimum = INT32_MAX;
+	i = 0;
+	size = size_of_list(a);
+	while (a->next)
+	{
+		if (minimum >= a->elem)
+		{
+			minimum = a->elem;
+			MIN[0] = i;
+		}
+		i++;
+		a = a->next;
+	}
+	MIN[1] = size - MIN[0];
+}
+
+void	find_max(t_swap *a)
+{
+	int		i;
+	int 	maximum;
+	int 	size;
+
+	maximum = a->elem;
+	i = 0;
+	size = size_of_list(a);
+	while (a->next)
+	{
+		if (maximum <= a->elem)
+		{
+			maximum = a->elem;
+			MAX[0] = i;
+		}
+		i++;
+		a = a->next;
+	}
+	MAX[1] = size - MAX[0];
+}
+
+void	under_median(t_swap **a, t_swap **b, int median)
 {
 	int 	size;
 	int 	i;
-	int 	in_b;
+	int 	cnt;
+	int 	size1;
 
 	i = 0;
 	size = size_of_list(*a);
-	in_b = 0;
+	cnt = 0;
+	size1 = size / 2;
 	while (i < size)
 	{
-		if ((*a)->elem > median)
+		if (cnt == size1)
+			break;
+		if ((*a)->elem < median)
 		{
 			p(b, a);
-			in_b++;
+			printf("pb\n");
+			size--;
 			i--;
+			cnt++;
 		}
 		else
-			r(a);
-		i++;
-	}
-	return (in_b);
-}
-
-int		sorted(t_swap *tmp)
-{
-	int		x;
-	int 	i;
-
-	x = tmp->elem;
-	i = 0;
-	while (tmp->next)
-	{
-		tmp = tmp->next;
-		if (x > tmp->elem)
 		{
-			return (0);
+			r(a);
+			printf("ra\n");
 		}
 		i++;
-		x = tmp->elem;
+	}
+}
+
+void	sort_push(t_swap **a, t_swap **b)
+{
+
+	if ((*b)->elem > (*b)->next->elem)
+		s(*b);
+	while (*b)
+	{
+		find_min(*b);
+		if (MIN[0] < MIN[1])
+		{
+			while (MIN[0] != 0)
+			{
+				r(b);
+				printf("rb\n");
+				MIN[0]--;
+			}
+			p(a, b);
+			printf("pb\n");
+			r(a);
+			printf("ra\n");
+			MIN[1] = 0;
+			BACK++;
+		}
+		else
+		{
+			while (MIN[1] != 0)
+			{
+				rr_a_b(b);
+				printf("rrb\n");
+				MIN[1]--;
+			}
+			p(a, b);
+			printf("pb\n");
+			r(a);
+			printf("ra\n");
+			MIN[0] = 0;
+			BACK++;
+		}
+		if (*b)
+		{
+			find_max(*b);
+			if (MAX[0] < MAX[1])
+			{
+				while (MAX[0] != 0)
+				{
+					r(b);
+					printf("rb\n");
+					MAX[0]--;
+				}
+				p(a, b);
+				printf("pb\n");
+				MAX[1] = 0;
+				HEAD++;
+			}
+			else
+			{
+				while (MAX[1] != 0)
+				{
+					rr_a_b(b);
+					printf("rrb\n");
+					MAX[1]--;
+				}
+				p(a, b);
+				printf("pb\n");
+				MAX[0] = 0;
+				HEAD++;
+			}
+		}
+		else
+			break;
+	}
+//	free_list(b);
+//	*b = new_list(NULL, 'b');
+	RESULT = HEAD + BACK;
+	while (HEAD > 0)
+	{
+		r(a);
+		printf("ra\n");
+		HEAD--;
+	}
+	refresh();
+}
+
+void	sort_push_a(t_swap **a, t_swap **b)
+{
+
+}
+
+int 	sorted(t_swap *a)
+{
+	while (a->next->next)
+	{
+		if (a->elem - a->next->elem > 0)
+			return (0);
+		a = a->next;
 	}
 	return (1);
 }
 
-int 	min(t_swap *a, int start)
-{
-	int 	res;
-	int 	i;
+void	sort_list(t_swap **a, t_swap **b, int *list, int size) {
+	int		central;
+	int 	flag;
 
-	res = a->elem;
-	i = 0;
-	while (a->next)
+	central = find_central(list, size);
+	under_median(a, b, central);
+	if ((*a)->elem > (*a)->next->elem)
 	{
-		if (i >= start)
-		{
-			if (res < a->elem)
-				res = a->elem;
-		}
-		else
-			i++;
-
-		a = a->next;
+		s(*a);
+		printf("sa\n");
 	}
-	return (res);
-}
-
-void	sort_ost_a(t_swap **a, t_swap **b)
-{
-	int 	i;
-	int 	size;
-	int 	minimum;
-
-	size = size_of_list(*a);
-	i = 0;
-	print_list(*a);
-	while (i < size)
+	flag = sorted(*a);
+	sort_push(a, b);
+	if (flag)
 	{
-		minimum = min(*a, i);
-		printf("minimum = %d\n", minimum);
-		if ((*a)->elem == minimum)
-		{
-			p(b ,a);
-			p(a, b);
-			i++;
-		}
-		else
+		while (RESULT < size)
 		{
 			r(a);
+			printf("ra\n");
+			RESULT++;
 		}
 	}
-}
-
-void	sort_list(t_swap **a, t_swap **b, int *list)
-{
-	int 	central;
-	t_swap	*head_a;
-	t_swap	*head_b;
-	int 	in_b;
-
-	head_a = *a;
-	head_b = *b;
-	in_b = 0;
-	while (/*b && */!(sorted(*a)))
+	else
 	{
-		central = find_central(head_a, list);
-//		central = 1;
-		in_b = under_median(a, b, central);
-		printf("in_b = %d\n", in_b);
-		sort_ost_a(a, b);
+		while (RESULT > 0)
+		{
+			p(b, a);
+			printf("pa\n");
+			RESULT--;
+		}
+		sort_push(a, b);
 	}
-
 }
-
-//do
-//{
-//while (array[left] < central)
-//left++;
-//while (array[right] > central)
-//right--;
-//if (left <= right)
-//{
-//tmp = array[right];
-//array[right] = array[left];
-//array[left] = tmp;
-//}
-//left++;
-//right--;
-//} while (left < right);
-//if (right > 0)
-//quick_sort(array, right + 1);
-//if (left < size)
-//quick_sort(&array[left], size - left);
-//return (array);
-
 
 int		main(int argc, char *argv[])
 {
@@ -453,18 +542,20 @@ int		main(int argc, char *argv[])
 	t_swap	*b;
 	int 	*list;
 
+	COUNT = 0;
+	refresh();
+	MIN = (int*)malloc(sizeof(int) * 2);
+	MAX = (int*)malloc(sizeof(int) * 2);
 	if (argc < 2)
 		RaiseError(1);
-	a = new_list(argv);
-	b = new_list(NULL);
+	a = new_list(argv, 'a');
+	b = new_list(NULL, 'b');
+	print_list(a);
+	print_list(b);
 	list = new_sort(&argv[1]);
-	print_massive(list, argc - 1);
+	if (!(sorted(a)))
+		sort_list(&a, &b, list, argc - 1);
 	print_list(a);
 	print_list(b);
-//	r(&a);
-	sort_list(&a, &b, list);
-	print_list(a);
-	print_list(b);
+	printf("%d\n", COUNT);
 }
-
-//1 4 6 7 2 5 4
